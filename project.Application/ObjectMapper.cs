@@ -45,8 +45,10 @@ namespace project.Application
             CreateMap<Groups, GroupModel>()
                 .ForMember(d => d.TotalMemberCount, opt => opt.MapFrom(src => src.Members.Count))
                 .ForMember(d => d.ClassName, opt => opt.MapFrom(src => src.Classroom.ClassName))
+                .ForMember(d => d.ClassRoomId, opt => opt.MapFrom(src => src.ClassRoomId))
                 .ForMember(d => d.TotalTasks, opt => opt.MapFrom(src => src.Tasks.Count))
-                .ForMember(d => d.TotalTasksDone, opt => opt.MapFrom(src => src.DoneTasksCount()));
+                .ForMember(d => d.TotalTasksDone, opt => opt.MapFrom(src => src.DoneTasksCount()))
+                .ForMember(d => d.GithubRepoUrl, opt => opt.MapFrom(src => src.GithubRepoUrl));
 
 
             CreateMap<Comment, CommentModel>()
@@ -73,7 +75,8 @@ namespace project.Application
                 .ForMember(dest => dest.MembersWithoutGroup, opt => opt.MapFrom(src => src.CountStudentsWithoutGroup()))
                 .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.ClassName))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.NumberEnrollments, opt => opt.MapFrom(src => src.CountClassEnrollments()));
 
             CreateMap<ClassEnrollment, EnrollmentModel>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
