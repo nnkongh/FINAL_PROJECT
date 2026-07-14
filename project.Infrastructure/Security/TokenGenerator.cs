@@ -61,7 +61,7 @@ namespace project.Infrastructure.Security
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var accessToken = tokenHandler.WriteToken(token);
 
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.Update(user);
             var tokenModel = new TokenModel { AccessToken = accessToken, RefreshToken = refreshToken };
             return tokenModel;
         }
