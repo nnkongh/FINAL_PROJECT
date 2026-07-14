@@ -30,12 +30,12 @@ namespace project.Infrastructure.Repositories
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
+        // duplicate code GetTasksByGroupIdAsync và GetTasksByUserIdAsync
 
-
-        public async Task<List<WorkTask>> GetTasksByUserIdAsync(int groupId, int userId, TasksStatus? taskStatus = null, TaskPriority? taskPriority = null)
+        public async Task<List<WorkTask>> GetTasksByUserIdAsync( int userId, int? groupId = null, TasksStatus? taskStatus = null, TaskPriority? taskPriority = null)
         {
             return await _context.WorkTask
-                .Where(t => t.GroupId == groupId)
+                .Where(t => groupId == null || t.GroupId == groupId)
                 .Where(t => t.AssignedTo == userId)
                 .Where(t => taskStatus == null || t.Status == taskStatus)
                 .Where(t => taskPriority == null || t.Priority == taskPriority)
@@ -56,7 +56,10 @@ namespace project.Infrastructure.Repositories
         //        .OrderByDescending(t => t.CreatedAt)
         //        .ToListAsync();
         //}
+        //
 
+        //AI GENERATED
+        //
         public async Task<WorkTask?> GetWithCreatorAndAssigneeByIdAsync(int id)
         {
             return await _context.WorkTask
