@@ -21,14 +21,17 @@ namespace project.Infrastructure.Repositories
             await _context.Set<T>().AddAsync(entity);
         }
 
-        public void DeleteAsync(T entity)
+        public Task Delete(T entity)
         {
             _context.Set<T>().Remove(entity);
+            return Task.CompletedTask;
         }
+
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _context.Set<T>().AsNoTracking().ToListAsync();
+            // Chưa phân trang
         }
 
         public async Task<T?> GetByIdAsync(int id)
@@ -36,10 +39,11 @@ namespace project.Infrastructure.Repositories
             return await _context.Set<T>().FindAsync(id);
         }
 
-        public Task UpdateAsync(T entity)
+        public Task Update(T entity)
         {
             _context.Set<T>().Update(entity);
             return Task.CompletedTask;
+            //  
         }
     }
 }
