@@ -358,12 +358,10 @@ namespace project.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("NewStatus")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("OldStatus")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
