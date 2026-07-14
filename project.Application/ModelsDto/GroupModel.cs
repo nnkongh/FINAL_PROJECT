@@ -35,9 +35,11 @@ namespace project.Application.ModelsDto
         public int LimitedUser { get; set; }
         public bool IsActive { get; set; }
         public string ClassName { get; set; } = string.Empty;
+        public int ClassRoomId { get; set; }
         public int TotalMemberCount { get; set; }
         public int TotalTasksDone { get; set; }
         public int TotalTasks { get; set; }
+        public string? GithubRepoUrl { get; set; }
     }
     public class GroupMemModel
     {
@@ -77,6 +79,7 @@ namespace project.Application.ModelsDto
         public string Name { get; set; }
         public string SubjectName { get; set; }
         public int MemberCount { get; set; }
+        public int LimitedUser { get; set; }
         public bool IsMyGroup { get; set; }
         public GroupProgressModel? Progress { get; set; }
     }

@@ -16,6 +16,7 @@ namespace project.Application.ModelsDto
         public bool IsActive { get; set; }
         public int TotalGroups { get; set; } 
         public int TotalEnrollments { get; set; }
+        public int MaxMembersPerGroup { get; set; }
     }
     public class ClassRoomDetailModel
     {
@@ -29,6 +30,7 @@ namespace project.Application.ModelsDto
         public int MaxMembersPerGroup { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int NumberEnrollments { get; set; }
     }
     public class ClassroomEnrollmentModel
     {
