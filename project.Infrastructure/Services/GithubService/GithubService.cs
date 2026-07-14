@@ -1,19 +1,11 @@
-﻿using Azure;
-using Azure.Core;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using project.Application.Interfaces;
 using project.Application.ModelsDto;
 using project.Domain.Exceptions;
-using project.Infrastructure.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace project.Infrastructure.Services.GithubService
 {
@@ -21,16 +13,24 @@ namespace project.Infrastructure.Services.GithubService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public GithubService(HttpClient httpClient, IConfiguration configuration)
+        private readonly IDistributedCache _cache;
+
+        public GithubService(HttpClient httpClient, IConfiguration configuration, IDistributedCache cache)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _cache = cache;
             _httpClient.DefaultRequestHeaders.Add("User-Agent", _configuration["App:Name"]);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _configuration["Github:Key"]);
         }
 
         public async Task<int> GetTotalCommitAsync(string owner, string repo, string userName)
         {
+            var cacheKey = $"commits:{owner}:{repo}:{userName}";
+            var cached = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cached) && int.TryParse(cached, out var result))
+                return result;
+
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}/commits?author={userName}&per_page=100");
             if (!response.IsSuccessStatusCode) return 0;
 
@@ -48,18 +48,39 @@ namespace project.Infrastructure.Services.GithubService
 
                 return !isMergeCommit;
             });
+
+            await _cache.SetStringAsync(cacheKey, commit.ToString(), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            });
+
             return commit;
         }
 
         public async Task<string?> GetRepoOwnerAsync(string owner, string repo)
         {
+            var cacheKey = $"owner:{owner}:{repo}";
+            var cached = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cached))
+                return cached;
+
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}");
             var rawJson = await response.Content.ReadAsStringAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound) throw new DomainException("Không tìm thấy repo");
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
             var isPrivate = json.GetProperty("private").GetBoolean();
             if (isPrivate) throw new DomainException("Ứng dụng chỉ hỗ trợ repo public");
-            return json.GetProperty("owner").GetProperty("login").GetString();
+            var result = json.GetProperty("owner").GetProperty("login").GetString();
+
+            if (result != null)
+            {
+                await _cache.SetStringAsync(cacheKey, result, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                });
+            }
+
+            return result;
         }
 
         public async Task<bool> InviteCollaboratorAsync(string owner, string repo, string githubUserName)
@@ -70,30 +91,71 @@ namespace project.Infrastructure.Services.GithubService
 
         public async Task<bool> IsValidRepositoryAsync(string owner, string repo)
         {
+            var cacheKey = $"valid:{owner}:{repo}";
+            var cached = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cached) && bool.TryParse(cached, out var result))
+                return result;
+
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}");
             if (!response.IsSuccessStatusCode) return false;
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
             var isPrivate = json.GetProperty("private").GetBoolean();
             if (isPrivate) throw new DomainException("Ứng dụng chỉ hỗ trợ repo public");
+
+            await _cache.SetStringAsync(cacheKey, "true", new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+            });
+
             return response.IsSuccessStatusCode;
         }
 
         private async Task<List<PullRequestModel>> GetPullRequestAsync(string owner, string repo)
         {
+            var cacheKey = $"prs:{owner}:{repo}";
+            var cached = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cached))
+            {
+                var deserialized = JsonSerializer.Deserialize<List<PullRequestModel>>(cached);
+                if (deserialized != null) return deserialized;
+            }
+
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}/pulls?state=all&per_page=100");
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<PullRequestModel>>(json) ?? [];
+            var prs = JsonSerializer.Deserialize<List<PullRequestModel>>(json) ?? [];
+
+            await _cache.SetStringAsync(cacheKey, json, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            });
+
+            return prs;
         }
 
         private async Task<PullRequestModel?> GetPullRequestDetailsAsync(string owner, string repo, int prNumber)
         {
+            var cacheKey = $"pr:{owner}:{repo}:{prNumber}";
+            var cached = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cached))
+                return JsonSerializer.Deserialize<PullRequestModel>(cached);
+
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}/pulls/{prNumber}");
             if(!response.IsSuccessStatusCode) return null;
 
             var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<PullRequestModel>(json);
+            var pr = JsonSerializer.Deserialize<PullRequestModel>(json);
+
+            if (pr != null)
+            {
+                await _cache.SetStringAsync(cacheKey, json, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
+
+            return pr;
         }
 
         public async Task<PullRequestModel?> GetPRByTaskIdAsync(string owner, string repo, int taskId)
@@ -108,9 +170,21 @@ namespace project.Infrastructure.Services.GithubService
 
         public async Task<bool> IsBranchExistAsync(string owner, string repo, int taskId)
         {
+            var cacheKey = $"branch:{owner}:{repo}:{taskId}";
+            var cached = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cached) && bool.TryParse(cached, out var result))
+                return result;
+
             var branchName = $"feature/task-{taskId}";
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}/branches/{branchName}");
-            return response.IsSuccessStatusCode;
+            var exists = response.IsSuccessStatusCode;
+
+            await _cache.SetStringAsync(cacheKey, exists.ToString().ToLower(), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            });
+
+            return exists;
         }
 
         public async Task<BranchModel?> CreateBranchAsync(string owner, string repo, int taskId, string accessToken, string baseBranch = "main")
@@ -146,6 +220,12 @@ namespace project.Infrastructure.Services.GithubService
             var createResponse = await _httpClient.SendAsync(createRequest);
             if (!createResponse.IsSuccessStatusCode) return null;
 
+            var cacheKey = $"branch:{owner}:{repo}:{taskId}";
+            await _cache.SetStringAsync(cacheKey, "true", new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            });
+
             return await createResponse.Content.ReadFromJsonAsync<BranchModel>();
 
         }
@@ -161,6 +241,12 @@ namespace project.Infrastructure.Services.GithubService
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             
             var response = await _httpClient.SendAsync(requestMessage);
+
+            var cacheKey = $"branch:{owner}:{repo}:{taskId}";
+            if (response.IsSuccessStatusCode)
+            {
+                await _cache.RemoveAsync(cacheKey);
+            }
 
             return response.StatusCode == System.Net.HttpStatusCode.NoContent;
         }

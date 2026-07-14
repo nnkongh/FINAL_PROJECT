@@ -18,8 +18,30 @@ namespace project.Infrastructure.Depedencies
                 .AddRepositories()
                 .AddAuthentication(config)
                 .AddMemoryCache()
+                .AddRedisCache(config)
                 .AddExternalService(config)
                 .AddProtection(config);
+            return services;
+        }
+    }
+    public static class RedisInject
+    {
+        public static IServiceCollection AddRedisCache(this IServiceCollection services, IConfiguration config)
+        {
+            var connectionString = config.GetConnectionString("Redis");
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                services.AddStackExchangeRedisCache(options =>
+                {
+                    options.Configuration = connectionString;
+                    options.InstanceName = "gh:";
+                });
+            }
+            else
+            {
+                services.AddDistributedMemoryCache();
+            }
+
             return services;
         }
     }
