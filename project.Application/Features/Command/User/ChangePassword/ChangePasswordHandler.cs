@@ -40,7 +40,7 @@ namespace project.Application.Features.Command.User.ChangePassword
             var passwordHash = _passwordHasher.Hash(request.NewPassword);
             user.ChangePassword(passwordHash);
 
-            await _unitOfWork.Repository<UserApp>().UpdateAsync(user);
+            await _unitOfWork.Repository<UserApp>().Update(user);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

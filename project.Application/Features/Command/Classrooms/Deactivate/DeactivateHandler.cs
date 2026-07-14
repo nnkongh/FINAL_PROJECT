@@ -30,7 +30,7 @@ namespace project.Application.Features.Command.Classrooms.Deactivate
                 if (classRoom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp"));
 
                 classRoom.Deactivate(request.RequestedBy);
-                await _classroomRepository.UpdateAsync(classRoom);
+                await _classroomRepository.Update(classRoom);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return Result.Success();

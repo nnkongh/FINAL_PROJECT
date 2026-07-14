@@ -52,7 +52,7 @@ namespace project.Application.Features.Command.WorkTasks.Reject
                 var history = TaskHistory.Create(task, request.RequestedBy, oldStatus, task.Status);
 
                 await _taskHistory.AddAsync(history);
-                await _taskRepository.UpdateAsync(task);
+                await _taskRepository.Update(task);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var emailSubject = $"Nhóm trưởng {leader.User.UserName}";

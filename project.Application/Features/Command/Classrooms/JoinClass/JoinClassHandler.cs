@@ -36,7 +36,7 @@ namespace project.Application.Features.Command.Classrooms.JoinClass
 
                 var enrollStudent = classRoom.EnrollStudent(student,request.ClassCode);
 
-                await _classroomRepository.UpdateAsync(classRoom);
+                await _classroomRepository.Update(classRoom);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 return Result.Success();
 

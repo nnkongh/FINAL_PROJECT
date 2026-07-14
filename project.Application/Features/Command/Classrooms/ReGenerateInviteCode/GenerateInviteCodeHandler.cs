@@ -27,7 +27,7 @@ namespace project.Application.Features.Command.Classrooms.ReGenerateInviteCode
                 if (classRoom == null) return Result.Failure<string>(new Error("404", "Không tìm thấy lớp"));
 
                 classRoom.RegenerateClassCode(request.RequestedBy);
-                await _classroomRepository.UpdateAsync(classRoom);
+                await _classroomRepository.Update(classRoom);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return Result.Success(classRoom.ClassCode);

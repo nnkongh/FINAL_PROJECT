@@ -35,7 +35,7 @@ namespace project.Application.Features.Command.Classrooms.Update
                 if (classRoom == null) return Result.Failure<ClassroomUpdateModel>(new Error("404", "Không tìm thấy lớp"));
 
                 classRoom.UpdateClassroom(request.ClassName, request.SubjectName, request.RequestedBy);
-                await _classroomRepository.UpdateAsync(classRoom);
+                await _classroomRepository.Update(classRoom);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var dto = _mapper.Map<ClassroomUpdateModel>(classRoom);

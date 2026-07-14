@@ -24,7 +24,7 @@ namespace project.Application.Features.Command.Classrooms.Activate
                 if (classRoom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp"));
                 
                 classRoom.Activate(classRoom, request.RequestedBy);
-                await _classroomRepository.UpdateAsync(classRoom);
+                await _classroomRepository.Update(classRoom);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return Result.Success();

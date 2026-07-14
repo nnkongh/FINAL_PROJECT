@@ -14,18 +14,16 @@ namespace project.Application.Features.Command.WorkTasks.Test
         private readonly IWorkTaskRepository _taskRepository;
         private readonly INotificationService _notificationService;
         private readonly IClassroomRepository _classRoomRepository;
-        private readonly IGithubService _githubService;
         private readonly ITaskHistoryRepository _taskHistoryRepository;
         private readonly IEmailService _emailService;
         private readonly IGroupRepository _groupRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public TestTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, INotificationService notificationService, IGroupRepository groupRepository, IGithubService githubService, IEmailService emailService, IClassroomRepository classRoomRepository, ITaskHistoryRepository taskHistoryRepository)
+        public TestTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, INotificationService notificationService, IGroupRepository groupRepository, IEmailService emailService, IClassroomRepository classRoomRepository, ITaskHistoryRepository taskHistoryRepository)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
             _groupRepository = groupRepository;
-            _githubService = githubService;
             _emailService = emailService;
             _classRoomRepository = classRoomRepository;
             _taskHistoryRepository = taskHistoryRepository;
@@ -57,7 +55,7 @@ namespace project.Application.Features.Command.WorkTasks.Test
 
                 var history = TaskHistory.Create(task, request.RequestedBy, oldStatus, task.Status);
                 await _taskHistoryRepository.AddAsync(history);
-                await _taskRepository.UpdateAsync(task);
+                await _taskRepository.Update(task);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var emailSubject = $"Thành viên {member.User.UserName}";
@@ -98,7 +96,6 @@ namespace project.Application.Features.Command.WorkTasks.Test
                                                 task.Id);
                     await _notificationService.SendNotificationAsync(notification, cancellationToken);
                 } // GENERAL GROUP
-
                 return Result.Success();
 
             }

@@ -65,7 +65,7 @@ namespace project.Application.Features.Command.WorkTasks.Complete
 
                 var history = TaskHistory.Create(task, request.RequestedBy, oldStatus, task.Status);
                 await _taskHistory.AddAsync(history);
-                await _taskRepository.UpdateAsync(task);
+                await _taskRepository.Update(task);
 
                 var emailSubject = $"Nhóm trưởng {leader.User.UserName}";
                 var body = $@"

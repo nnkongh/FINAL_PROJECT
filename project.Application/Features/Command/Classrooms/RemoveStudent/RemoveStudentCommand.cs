@@ -60,17 +60,17 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
                     if (oldestMem != null)
                     {
                         oldestMem.PromoteTo(GroupMemberRole.Leader);
-                        await _unitOfWork.Repository<Groups>().UpdateAsync(group);
+                        await _unitOfWork.Repository<Groups>().Update(group);
                     }
                     // Trường hợp khi không còn sinh viên nào sẽ xóa luôn nhóm
                     else
                     {
-                        _unitOfWork.Repository<Groups>().DeleteAsync(group);
+                        _unitOfWork.Repository<Groups>().Delete(group);
                     }
                 }
             }
             classRoom.RemoveStudent(student);
-            await _unitOfWork.Repository<Classroom>().UpdateAsync(classRoom);
+            await _unitOfWork.Repository<Classroom>().Update(classRoom);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var notificaton = Notification.Create(student.UserId, $"Bạn đã bị giáo viên mời ra khỏi lớp {classRoom.ClassName}", null, classRoom.Id,"Classroom", classRoom.Id);

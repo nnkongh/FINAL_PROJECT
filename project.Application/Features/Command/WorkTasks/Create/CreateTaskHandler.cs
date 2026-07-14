@@ -72,7 +72,7 @@ namespace project.Application.Features.Command.WorkTasks.Create
 
                 var task = WorkTask.Create(
                     request.GroupId, request.Title, request.RequestedBy,
-                    request.TaskStatus, request.Priority, request.AssignedTo, request.DueDate
+                    request.TaskStatus, request.Priority, request.AssignedTo, request.DueDate, request.Description
                 );
 
                 await _taskRepository.AddAsync(task);
@@ -111,13 +111,10 @@ namespace project.Application.Features.Command.WorkTasks.Create
                     }
                 }
 
-                if (request.TaskStatus == TasksStatus.InProgress)
-                {
-                    var history = TaskHistory.Create(task, request.RequestedBy, TasksStatus.ToDo, TasksStatus.InProgress);
-                    await _taskHistoryRepository.AddAsync(history);
-                }
+                var history = TaskHistory.Create(task, request.RequestedBy, null, request.TaskStatus);
+                await _taskHistoryRepository.AddAsync(history);
 
-                await _taskRepository.UpdateAsync(task);
+                await _taskRepository.Update(task);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitAsync(cancellationToken);
 

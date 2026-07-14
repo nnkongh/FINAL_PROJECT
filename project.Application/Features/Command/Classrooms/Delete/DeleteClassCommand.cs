@@ -32,7 +32,7 @@ namespace project.Application.Features.Command.Classrooms.Delete
             if (teacher == null || teacher.UserRole != Domain.Models.UserRole.Teacher)
                 return Result.Failure(new Error("403", "Bạn không có quyền thực hiện chức năng này"));
 
-            _classRoomRepository.DeleteAsync(classroom);
+            await _classRoomRepository.Delete(classroom);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }

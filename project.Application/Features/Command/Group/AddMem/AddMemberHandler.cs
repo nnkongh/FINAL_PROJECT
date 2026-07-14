@@ -40,7 +40,7 @@ namespace project.Application.Features.Command.Group.AddMem
                 var member = GroupMem.Create(group,request.UserId);
                 group.AddMember(member, classroom, request.RequestedBy);
 
-                await _unitOfWork.Repository<Groups>().UpdateAsync(group);
+                await _unitOfWork.Repository<Groups>().Update(group);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var notification = Notification.Create(request.UserId, $"Bạn được thêm vào nhóm {group.Name}", null, request.GroupId, "Group", request.GroupId);

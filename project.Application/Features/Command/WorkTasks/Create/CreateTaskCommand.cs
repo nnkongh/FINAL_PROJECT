@@ -9,7 +9,7 @@ using System.Text;
 
 namespace project.Application.Features.Command.WorkTasks.Create
 {
-    public sealed record CreateTaskCommand(int GroupId, string Title, int CreatedBy, TasksStatus TaskStatus, TaskPriority Priority, int RequestedBy, int? AssignedTo = null, DateTime? DueDate = null) : IRequest<Result<TaskModel>>
+    public sealed record CreateTaskCommand(int GroupId, string Title, int CreatedBy, TasksStatus TaskStatus, TaskPriority Priority, int RequestedBy, int? AssignedTo = null, DateTime? DueDate = null, string? Description = null) : IRequest<Result<TaskModel>>
     {
     }
 }

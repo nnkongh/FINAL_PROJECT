@@ -32,7 +32,7 @@ namespace project.Application.Features.Command.Group.Update
             if (leader == null || !leader.IsLeader()) return Result.Failure(new Error("403", "Chỉ có leader được cập nhật nhóm"));
 
             group.UpdateDetails(request.Name, request.Subject);
-            await _unitOfWork.Repository<Groups>().UpdateAsync(group);
+            await _unitOfWork.Repository<Groups>().Update(group);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

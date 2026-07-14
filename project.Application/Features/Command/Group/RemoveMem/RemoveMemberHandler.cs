@@ -47,7 +47,7 @@ namespace project.Application.Features.Command.Group.RemoveMem
                 var member = group.FindMember(request.userId);
                 if (member == null) return Result.Failure(new Error("404", "Không tìm thấy thành viên cần xóa"));
 
-                var tasks = await _taskRepository.GetTasksByUserIdAsync(request.groupId, request.userId);
+                var tasks = await _taskRepository.GetTasksByUserIdAsync( request.userId, request.groupId);
                 foreach (var task in tasks)
                 {
                     task.UnAssigned();

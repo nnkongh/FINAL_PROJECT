@@ -50,7 +50,7 @@ namespace project.Application.Features.Command.Group.Create
                 group.InitLeader(leader, classRoom);
                 enrollment.SetGroup(group.Id);
 
-                await _classRoomRepository.UpdateAsync(classRoom);
+                await _classRoomRepository.Update(classRoom);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 await _unitOfWork.CommitAsync(cancellationToken);

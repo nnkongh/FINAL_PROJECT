@@ -20,11 +20,12 @@ namespace project.Application.Features.Command.WorkTasks.Delete
     {
         private readonly IWorkTaskRepository _taskRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITaskHistoryRepository _taskHistory;
         private readonly IGroupRepository _groupRepository;
         private readonly IGithubService _githubService;
         private readonly ITokenEncryptionService _tokenEncryption;
         private readonly IClassroomRepository _classRoomRepository;
-        public DeleteTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, IClassroomRepository classRoomRepository, IGithubService githubService, ITokenEncryptionService tokenEncryption)
+        public DeleteTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, IClassroomRepository classRoomRepository, IGithubService githubService, ITokenEncryptionService tokenEncryption, ITaskHistoryRepository taskHistory)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
@@ -32,6 +33,7 @@ namespace project.Application.Features.Command.WorkTasks.Delete
             _classRoomRepository = classRoomRepository;
             _githubService = githubService;
             _tokenEncryption = tokenEncryption;
+            _taskHistory = taskHistory;
         }
         public async Task<Result> Handle(DeleteTaskCommand request, CancellationToken cancellationToken)
         {
@@ -48,10 +50,7 @@ namespace project.Application.Features.Command.WorkTasks.Delete
                 if (classroom == null) return Result.Failure<TaskModel>(new Error("404", "Không tìm thấy lớp học"));
                 if (!classroom.IsActive) return Result.Failure<TaskModel>(new Error("403", "Lớp học đã bị vô hiệu hóa"));
 
-                var members = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
-                if (members == null) return Result.Failure<TaskModel>(new Error("404", "Không có thành viên nào"));
-
-                var leader = members.FindMember(request.RequestedBy);
+                var leader = group.FindMember(request.RequestedBy);
                 if (leader == null || !leader.IsLeader()) return Result.Failure<TaskModel>(new Error("403", "Chỉ có leader được xóa task"));
 
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -71,8 +70,9 @@ namespace project.Application.Features.Command.WorkTasks.Delete
                     if (!delete) return Result.Failure(new Error("400", "Không thể xóa branch"));
                     await _unitOfWork.RollbackAsync(cancellationToken);
                 }
-                _taskRepository.DeleteAsync(task);
-                _unitOfWork.Repository<WorkTask>();
+                var taskHistory = TaskHistory.Create(task, request.RequestedBy);
+                await _taskRepository.Delete(task);
+                await _taskHistory.AddAsync(taskHistory);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitAsync(cancellationToken);
 

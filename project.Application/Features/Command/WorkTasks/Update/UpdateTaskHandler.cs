@@ -19,11 +19,12 @@ namespace project.Application.Features.Command.WorkTasks.Update
         private readonly IWorkTaskRepository _taskRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClassroomRepository _classRoomRepository;
+        private readonly ITaskHistoryRepository _taskHistory;
         private readonly IGroupRepository _groupRepository;
         private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
 
-        public UpdateTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IMapper mapper, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository)
+        public UpdateTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IMapper mapper, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository, ITaskHistoryRepository taskHistory)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
@@ -31,6 +32,7 @@ namespace project.Application.Features.Command.WorkTasks.Update
             _groupRepository = groupRepository;
             _notificationService = notificationService;
             _classRoomRepository = classRoomRepository;
+            _taskHistory = taskHistory;
         }
         public async Task<Result<TaskModel>> Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
         {
@@ -53,8 +55,9 @@ namespace project.Application.Features.Command.WorkTasks.Update
                 if (classroom == null) return Result.Failure<TaskModel>(new Error("404", "Không tìm thấy lớp học"));
                 if (!classroom.IsActive) return Result.Failure<TaskModel>(new Error("403", "Lớp học đã bị vô hiệu hóa"));
 
-                var leader = group.FindMember(request.RequestedBy);
-                if (leader == null || !leader.IsLeader()) return Result.Failure<TaskModel>(new Error("403", "Chỉ có leader được cập nhật task"));
+                var member = group.FindMember(request.RequestedBy);
+                if (member == null) return Result.Failure<TaskModel>(new Error("403", "Chỉ thành viên nhóm mới có thể cập nhật task"));
+                if (!member.IsActive) return Result.Failure<TaskModel>(new Error("403", "Thành viên đã bị vô hiệu hóa"));
 
                 if (request.AssignedTo.HasValue)
                 {
@@ -62,11 +65,13 @@ namespace project.Application.Features.Command.WorkTasks.Update
                     if (assignee == null) return Result.Failure<TaskModel>(new Error("404", "Người được giao không phải là thành viên của nhóm"));
                 }
                 task.UpdateDetails(request.Title, request.Description, request.Priority, request.TaskStatus,request.DueDate, request.AssignedTo);
+                var taskHistory = TaskHistory.Create(task, request.RequestedBy);
+                await _taskHistory.AddAsync(taskHistory);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                if (request.AssignedTo.HasValue && request.AssignedTo.Value != leader.UserId)
+                if (request.AssignedTo.HasValue && request.AssignedTo.Value != member.UserId)
                 {
-                    var notification = Notification.Create(request.AssignedTo.Value, $"Bạn đã được giao một task mới trong nhóm {group.Name} bởi {leader.User.UserName}", $"Task: {task.Title}", group.Id, "Task", task.Id);
+                    var notification = Notification.Create(request.AssignedTo.Value, $"Bạn đã được giao một task mới trong nhóm {group.Name} bởi {member.User.UserName}", $"Task: {task.Title}", group.Id, "Task", task.Id);
                     await _notificationService.SendNotificationAsync(notification,cancellationToken);
                 }
                 var dto = _mapper.Map<TaskModel>(task);

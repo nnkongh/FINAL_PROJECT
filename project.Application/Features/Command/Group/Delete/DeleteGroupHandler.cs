@@ -43,8 +43,8 @@ namespace project.Application.Features.Command.Group.Delete
             if (enrollment == null || !enrollment.IsActive) return Result.Failure(new Error("403", "Bạn không phải là thành viên trong lớp"));
             enrollment.UnsetGroup();
 
-            await _unitOfWork.Repository<Classroom>().UpdateAsync(classroom);
-            _unitOfWork.Repository<Groups>().DeleteAsync(group);
+            await _unitOfWork.Repository<Classroom>().Update(classroom);
+            _unitOfWork.Repository<Groups>().Delete(group);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
