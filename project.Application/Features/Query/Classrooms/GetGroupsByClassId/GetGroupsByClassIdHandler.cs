@@ -58,6 +58,7 @@ namespace project.Application.Features.Query.Classrooms.GetGroupsByClassId
                     Name = g.Name,
                     SubjectName = g.SubjectOrProjectName,
                     MemberCount = g.ActiveMemberCount(),
+                    LimitedUser = g.LimitedUser,
                     IsMyGroup = isMyGroup,
                     Progress = progress
                 };
