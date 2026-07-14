@@ -15,6 +15,7 @@ namespace project.Infrastructure.Repositories
         {
             return await _context.Notification
                         .Where(n => n.UserId == userId)
+                        .OrderByDescending(n => n.CreatedAt)
                         .ToListAsync();
         }
 
@@ -22,6 +23,7 @@ namespace project.Infrastructure.Repositories
         {
             return await _context.Notification
                         .Where(n => n.UserId == userId && !n.IsRead)
+                        .OrderByDescending(n => n.CreatedAt)
                         .ToListAsync();
         }
     }
