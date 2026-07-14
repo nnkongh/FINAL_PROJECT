@@ -11,6 +11,7 @@ using project.Application.Features.Command.WorkTasks.SetDueDate;
 using project.Application.Features.Command.WorkTasks.Start;
 using project.Application.Features.Command.WorkTasks.Test;
 using project.Application.Features.Command.WorkTasks.Update;
+using project.Application.Features.Query.WorkTask.GetAllMyTasksQuery;
 using project.Application.Features.Query.WorkTask.GetById;
 using project.Application.Features.Query.WorkTask.GetTaskDetail;
 using project.Application.Features.Query.WorkTask.GetTaskHistoryById;
@@ -52,7 +53,7 @@ namespace project.Presentation.Controllers
         {
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
-            var command = new CreateTaskCommand(groupId, request.Title, user.Value, request.TaskStatus, request.Priority, user.Value, request.AssignedTo, request.DueDate);
+            var command = new CreateTaskCommand(groupId, request.Title, user.Value, request.TaskStatus, request.Priority, user.Value, request.AssignedTo, request.DueDate, request.Description);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
@@ -152,6 +153,15 @@ namespace project.Presentation.Controllers
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
             var query = new GetTasksOverdueQuery(user.Value, groupId);
+            var result = await _sender.Send(query);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
+        [HttpGet("task/all-my-task")]
+        public async Task<IActionResult> GetAllMyTasks()
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var query = new GetAllMyTasksQuery(user.Value);
             var result = await _sender.Send(query);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }

@@ -94,12 +94,15 @@ namespace project.Presentation.Controllers
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllUsers([FromQuery]string? role)
+        public async Task<IActionResult> GetAllUsers(
+            [FromQuery] string? role,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
 
-            var query = new GetUsersQuery(role, user.Value);
+            var query = new GetUsersQuery(role, user.Value, page, pageSize);
             var result = await _sender.Send(query);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
