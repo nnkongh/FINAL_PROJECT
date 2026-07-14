@@ -26,7 +26,7 @@ namespace project.Application.Features.Query.Profile
             var user = await _userRepository.GetByIdAsync(request.id);
             if (user == null) return Result.Failure<UserProfileModel>(new Error("404", "Không tìm thấy người dùng"));
 
-            var profileModel = new UserProfileModel { Email = user.Email, GithubUserName = user.GithubUserName, UserCode = user.UserCode, AvatarUrl = user.AvatarUrl, IsActive = true, UserRole = user.UserRole, UserName = user.UserName };
+            var profileModel = new UserProfileModel { Id = user.Id, Email = user.Email, GithubUserName = user.GithubUserName, UserCode = user.UserCode, AvatarUrl = user.AvatarUrl, IsActive = true, UserRole = user.UserRole, UserName = user.UserName };
             return Result.Success(profileModel);
         }
     }
