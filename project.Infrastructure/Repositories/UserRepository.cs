@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using project.Domain.Interfaces;
 using project.Domain.Models;
+using project.Domain.Shared;
 using project.Infrastructure.Database;
 using System;
 using System.Collections.Generic;
@@ -33,9 +34,24 @@ namespace project.Infrastructure.Repositories
             return await _context.User.FirstOrDefaultAsync(u => u.UserCode == userCode);
         }
 
-        public async Task<List<UserApp>> GetAllAsync(UserRole? userRole = null)
+        public async Task<PagedResult<UserApp>> GetAllAsync(UserRole? userRole, int page, int pageSize)
         {
-            return await _context.User.Where(u => userRole == null || u.UserRole == userRole).ToListAsync();
+            var query = _context.User.Where(u => userRole == null || u.UserRole == userRole);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(u => u.UserName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<UserApp>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+            };
         }
 
         public async Task<UserApp?> GetByGithubIdAsync(long Id)
@@ -60,10 +76,12 @@ namespace project.Infrastructure.Repositories
 
         public async Task<List<UserApp>> SearchAsync(string keyword)
         {
-            return await _context.User.Where(u => u.UserName.Contains(keyword) || u.Email.Contains(keyword) || u.UserCode!.Contains(keyword))
-                                      .Where(u => u.IsActive)
-                                      .Take(10)
-                                      .ToListAsync();
+            //return await _context.User.Where(u => u.UserName.Contains(keyword) || u.Email.Contains(keyword) || u.UserCode!.Contains(keyword))
+            //                          .Where(u => u.IsActive)
+            //                          .Take(10)
+            //                          .ToListAsync();
+
+            return await _context.User.Where(u => EF.Functions.Contains(u.UserName, keyword)).Take(10).ToListAsync();
         }
     }
 }
