@@ -1,4 +1,5 @@
 ﻿using project.Domain.Models;
+using project.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace project.Domain.Interfaces
         Task<string> GetRoleAsync(int id);
         Task AddRangeAsync(IEnumerable<UserApp> users);
         Task<List<UserApp>> SearchAsync(string keyword);
-        Task<List<UserApp>> GetAllAsync(UserRole? userRole = null);
+        Task<PagedResult<UserApp>> GetAllAsync(UserRole? userRole, int page, int pageSize);
         Task<UserApp?> GetByGithubIdAsync(long Id);
     }
 }
