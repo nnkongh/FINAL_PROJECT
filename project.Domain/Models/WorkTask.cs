@@ -28,7 +28,7 @@ namespace project.Domain.Models
         private readonly List<TaskHistory> _history = new List<TaskHistory>();
 
         private WorkTask() { }
-        public static WorkTask Create(int groupId, string title, int createdBy, TasksStatus taskStatus, TaskPriority priority = TaskPriority.Medium, int? assignedTo = null, DateTime? duedate = null)
+        public static WorkTask Create(int groupId, string title, int createdBy, TasksStatus taskStatus, TaskPriority priority = TaskPriority.Medium, int? assignedTo = null, DateTime? duedate = null, string? description = null)
         {
             if (string.IsNullOrEmpty(title)) throw new DomainException("Tên tiêu đề không thể để trống");
             if (taskStatus != TasksStatus.InProgress && taskStatus != TasksStatus.ToDo) throw new DomainException("Trạng thái của task chỉ có thể là 'Todo' hoặc 'InProgress'");
@@ -36,9 +36,11 @@ namespace project.Domain.Models
             {
                 GroupId = groupId,
                 Title = title,
+                Description = description,
                 CreatedBy = createdBy,
                 Priority = priority,
                 Status = taskStatus,
+                StartDate = taskStatus == TasksStatus.InProgress ? DateTime.UtcNow : null,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 DueDate = duedate,
@@ -117,6 +119,7 @@ namespace project.Domain.Models
             Title = title;
             Description = description;
             Priority = priority;
+            Status = taskStatus;
             UpdatedAt = DateTime.UtcNow;
             AssignedTo = assignedTo;
             DueDate = dueDate;
@@ -133,6 +136,6 @@ namespace project.Domain.Models
 
         public bool IsOverdue() => DueDate.HasValue && DueDate.Value < DateTime.UtcNow && Status != TasksStatus.Done;
         public bool IsAssigned() => AssignedTo.HasValue;
-        public TimeSpan? Duration => CompletedAt.HasValue && StartDate.HasValue ? CompletedAt.Value - StartDate.Value : null;
+        public TimeSpan? Duration => CompletedAt.HasValue ? CompletedAt.Value - (StartDate ?? CreatedAt) : null;
     }
 }
