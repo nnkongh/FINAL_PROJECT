@@ -20,7 +20,7 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
     {
     }
 
-    public sealed record TaskDetailModel(int Id, string Title, TaskPriority TaskPriority, string? Description, TasksStatus TaskStatus, DateTime CreatedAt, DateTime? StartDate = null, DateTime? DueDate = null, TimeSpan? Duration = null, PullRequestModel? PR = null, string? Assignee = null);
+    public sealed record TaskDetailModel(int Id, string Title, TaskPriority TaskPriority, string? Description, TasksStatus TaskStatus, DateTime CreatedAt, DateTime? StartDate = null, DateTime? DueDate = null, DateTime? CompletedAt = null, TimeSpan? Duration = null, PullRequestModel? PR = null, string? Assignee = null, int CreatedBy = 0, string? CreatorName = null, int? AssignedTo = null);
 
     public sealed class GetTaskDetailHander : IRequestHandler<GetTaskDetailQuery, Result<TaskDetailModel>>
     {
@@ -38,7 +38,7 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
 
         public async Task<Result<TaskDetailModel>> Handle(GetTaskDetailQuery request, CancellationToken cancellationToken)
         {
-            var task = await _taskRepository.GetByIdAsync(request.TaskId);
+            var task = await _taskRepository.GetWithCreatorAndAssigneeByIdAsync(request.TaskId);
             if (task == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy task"));
             
             var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
@@ -57,20 +57,16 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
             if (group.GithubRepoUrl != null)
             {
                 var (owner, repo) = GithubUrlParser.Parse(group.GithubRepoUrl!);
-                if (task.Assignee == null)
-                {
-                    return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.DueDate!.Value, task.CreatedAt, task.StartDate,task.Duration,null,task.Assignee?.UserName);
-                }
                 PullRequestModel? pr = null;
                 if (task.Status == TasksStatus.Test || task.Status == TasksStatus.Done)
                 {
                     pr = await _githubService.GetPRByTaskIdAsync(owner, repo, task.Id);
                 }
-                return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate, task.Duration, pr, task.Assignee.UserName);
+                return new TaskDetailModel(task.Id, task.Title, task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate, task.CompletedAt, task.Duration, pr, task.Assignee?.UserName, task.CreatedBy, task.Creator?.UserName, task.AssignedTo);
             }
             else
             {
-                return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate,task.Duration,null,task.Assignee?.UserName);
+                return new TaskDetailModel(task.Id, task.Title, task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate, task.CompletedAt, task.Duration, null, task.Assignee?.UserName, task.CreatedBy, task.Creator?.UserName, task.AssignedTo);
             }
         }
     };
