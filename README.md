@@ -49,4 +49,57 @@ dotnet run
 
 ## Kiến trúc hệ thống
 
+> [!NOTE]
+> Ứng dụng sử dụng GitHub API để lấy dữ liệu commit, cần cấu hình `GITHUB_TOKEN` trong biến môi trường.
+
+> [!WARNING]
+> Tính năng Hỗ trợ AI yêu cầu API Key hợp lệ, nếu không sẽ bị vô hiệu hoá.
+
+> [!IMPORTANT]
+> Ứng dụng phụ thuộc vào API bên ngoài — vui lòng kiểm tra rate limit trước khi test hàng loạt.
+
+\`\`\`json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "",
+    "Redis": ""
+  },
+  "EmailSettings": {
+    "SmtpServer": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "Username": "",
+    "Password": "",
+    "FromAddress": ""
+  },
+  "Jwt": {
+    "Issuer": "https://localhost:7065",
+    "Audience": "https://localhost:7065",
+    "Key": ""
+  },
+  "Cloudinary": {
+    "CloudName": "",
+    "ApiKey": "",
+    "ApiSecret": ""
+  },
+  "Cors": {
+    "Origins": "http://localhost:5173"
+  },
+  "Github": {
+    "GithubClientId": "",
+    "GithubClientSecret": "",
+    "RedirectUri": "https://localhost:7065/api/auth/github/callback",
+    "Key": ""
+  },
+  "App": {
+    "FrontendUrl": "http://localhost:5173",
+    "Name": "TaskMonitoring"
+  },
+  "Gemini": {
+    "ApiKey": "",
+    "Url": ""
+  },
+  "FileStorage": {
+    "BasePath": "/var/app/storage"
+  }
+}
 <img width="700" alt="architecture" src="https://github.com/user-attachments/assets/ed9fdea9-bf69-4bb1-8a2c-892fe3e5ef5d" />
