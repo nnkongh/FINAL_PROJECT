@@ -17,12 +17,20 @@
 - **Frontend:** Reactjs
 - **Containerization:** Docker, Docker Compose
 
-
 ## Yêu cầu hệ thống
 - Docker & Docker Compose
 - .NET SDK 8.0
 - Visual Studio 2022
 - SQL Server
+
+> [!NOTE]
+> Ứng dụng sử dụng GitHub API để lấy dữ liệu commit, cần cấu hình `GITHUB_TOKEN` `GOOGLE_GEMINI` `CLOUDINARY` trong biến môi trường.
+
+> [!WARNING]
+> Tính năng Hỗ trợ AI yêu cầu API Key hợp lệ, nếu không sẽ bị vô hiệu hoá.
+
+> [!IMPORTANT]
+> Ứng dụng phụ thuộc vào API bên ngoài — vui lòng kiểm tra rate limit trước khi test hàng loạt.
 
 ## Cài đặt & Chạy dự án
 
@@ -40,22 +48,12 @@ docker compose up --build
 
 **Backend (ASP.NET Core)**
 
-\`\`\`bash
-cd backend
-dotnet restore
-dotnet ef database update
-dotnet run
-\`\`\`
+```bash
+git clone https://github.com/nnkongh/FINAL_PROJECT
+cd FINAL_PROJECT
+docker compose up --build
+```
 
 ## Kiến trúc hệ thống
-
-> [!NOTE]
-> Ứng dụng sử dụng GitHub API để lấy dữ liệu commit, cần cấu hình `GITHUB_TOKEN` trong biến môi trường.
-
-> [!WARNING]
-> Tính năng Hỗ trợ AI yêu cầu API Key hợp lệ, nếu không sẽ bị vô hiệu hoá.
-
-> [!IMPORTANT]
-> Ứng dụng phụ thuộc vào API bên ngoài — vui lòng kiểm tra rate limit trước khi test hàng loạt.
 
 <img width="700" alt="architecture" src="https://github.com/user-attachments/assets/ed9fdea9-bf69-4bb1-8a2c-892fe3e5ef5d" />
