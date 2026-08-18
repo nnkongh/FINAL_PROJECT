@@ -47,9 +47,9 @@ docker compose up --build
 **Backend (ASP.NET Core)**
 
 ```bash
-git clone https://github.com/nnkongh/FINAL_PROJECT
-cd FINAL_PROJECT
-docker compose up --build
+dotnet restore
+dotnet ef database update 
+dotnet run
 ```
 
 ## Kiến trúc hệ thống
