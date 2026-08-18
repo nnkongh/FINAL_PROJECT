@@ -28,22 +28,25 @@
 
 ### Sử dụng Docker (khuyến nghị)
 
-\`\`\` bash
+### Sử dụng Docker (khuyến nghị)
+
+\`\`\`bash
 git clone https://github.com/nnkongh/FINAL_PROJECT
 cd FINAL_PROJECT
-
 docker compose up --build
 \`\`\`
 
-### Chạy thủ công 
+### Chạy thủ công
 
 **Backend (ASP.NET Core)**
+
 \`\`\`bash
 cd backend
 dotnet restore
-dotnet ef database update   # nếu dùng Entity Framework migrations
+dotnet ef database update
 dotnet run
+\`\`\`
 
-**Kiến trúc hệ thống
-\`\`\<img width="2250" height="2814" alt="40cb8f80-601f-4364-a5a0-a34db7a96c26_2250x2814" src="https://github.com/user-attachments/assets/ed9fdea9-bf69-4bb1-8a2c-892fe3e5ef5d" />
+## Kiến trúc hệ thống
 
+<img width="700" alt="architecture" src="https://github.com/user-attachments/assets/ed9fdea9-bf69-4bb1-8a2c-892fe3e5ef5d" />
