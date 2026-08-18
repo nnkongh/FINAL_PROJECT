@@ -36,13 +36,11 @@
 
 ### Sử dụng Docker (khuyến nghị)
 
-### Sử dụng Docker (khuyến nghị)
-
-\`\`\`bash
+```bash
 git clone https://github.com/nnkongh/FINAL_PROJECT
 cd FINAL_PROJECT
 docker compose up --build
-\`\`\`
+```
 
 ### Chạy thủ công
 
