@@ -9,6 +9,7 @@ using project.Domain.Interfaces;
 using project.Domain.Models;
 using project.Infrastructure.Database;
 using project.Infrastructure.Interfaces;
+using project.Infrastructure.Caching;
 using project.Infrastructure.Repositories;
 using project.Infrastructure.Security;
 using project.Infrastructure.Services.Email;
@@ -26,6 +27,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using static Org.BouncyCastle.Math.EC.ECCurve;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace project.Infrastructure.Depedencies
 {
@@ -47,13 +49,29 @@ namespace project.Infrastructure.Depedencies
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
-            services.AddScoped<ICommentRepository, CommentRepository>(); 
-            services.AddScoped<IGroupRepository, GroupRepository>();
+            services.AddScoped<WorkTaskRepository>();
+            services.AddScoped<IWorkTaskRepository>(sp =>
+                new CachedTaskRepository(
+                    sp.GetRequiredService<WorkTaskRepository>(),
+                    sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
+            services.AddScoped<ICommentRepository, CommentRepository>();
+
+            services.AddScoped<GroupRepository>();
+            services.AddScoped<IGroupRepository>(sp =>
+                new CachedGroupRepository(
+                    sp.GetRequiredService<GroupRepository>(),
+                    sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
+
+            services.AddScoped<UserRepository>();
+            services.AddScoped<IUserRepository>(sp =>
+                new CachedUserRepository(
+                    sp.GetRequiredService<UserRepository>(),
+                    sp.GetRequiredService<IDistributedCache>()));
+
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IReportRepository,ReportRepository>();
-            services.AddScoped<IClassroomRepository,ClassroomRepository>();
+            services.AddScoped<IClassroomRepository,ClassroomRepository>(); 
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
 
 

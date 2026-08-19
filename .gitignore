@@ -21,7 +21,7 @@ docker-compose.override.yml
 
 myapi.tar
 sqlserver.tar
-
+frontend
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

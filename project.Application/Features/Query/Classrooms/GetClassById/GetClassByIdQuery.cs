@@ -40,3 +40,4 @@ namespace project.Application.Features.Query.Group.GetClassById
         }
     }
 }
+                        

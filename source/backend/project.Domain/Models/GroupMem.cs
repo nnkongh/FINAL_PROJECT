@@ -17,7 +17,7 @@ namespace project.Domain.Models
         public int Contribution { get; private set; } = 0;
         private GroupMem() { }
 
-        public static GroupMem Create(Groups group, int userId, GroupMemberRole role = GroupMemberRole.Member)
+        public static GroupMem Create(Groups group,int userId, GroupMemberRole role = GroupMemberRole.Member)
         {
             return new GroupMem
             {

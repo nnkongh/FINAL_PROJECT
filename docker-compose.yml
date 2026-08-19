@@ -36,12 +36,15 @@ services:
       - Gemini__ApiKey=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
       - Gemini__Url=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
+      - ConnectionStrings__Redis=redis:6379
       - App__FrontendUrl=${APP_FRONTENDURL}
       - App__Name=TaskMonitoring
       - Cors__Origins=http://localhost:5173,https://localhost:5173
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -62,5 +65,16 @@ services:
       retries: 5
       start_period: 30s
 
+  redis:
+    image: redis:7-alpine
+    pull_policy: missing
+    container_name: myapi-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
 volumes:
   sqldata:
+  redisdata:
