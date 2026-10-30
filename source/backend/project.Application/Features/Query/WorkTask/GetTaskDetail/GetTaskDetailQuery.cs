@@ -1,6 +1,7 @@
 ﻿using AutoMapper.Features;
 using MediatR;
 using project.Application.Interfaces;
+using project.Application.Interfaces.CachedModel;
 using project.Application.ModelsDto;
 using project.Domain.Helpers;
 using project.Domain.Interfaces;
@@ -25,23 +26,27 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
     public sealed class GetTaskDetailHander : IRequestHandler<GetTaskDetailQuery, Result<TaskDetailModel>>
     {
         private readonly IWorkTaskRepository _taskRepository;
+        private readonly ITaskReadService _taskReadService;
+        private readonly IGroupReadService _groupReadService;
         private readonly IGithubService _githubService;
         private readonly IGroupRepository _groupRepository;
         private readonly IClassroomRepository _classRoomRepository;
-        public GetTaskDetailHander(IGroupRepository groupRepository, IGithubService githubService, IWorkTaskRepository taskRepository, IClassroomRepository classRoomRepository)
+        public GetTaskDetailHander(IGroupRepository groupRepository, IGithubService githubService, IWorkTaskRepository taskRepository, IClassroomRepository classRoomRepository, ITaskReadService taskReadService, IGroupReadService groupReadService)
         {
             _groupRepository = groupRepository;
             _githubService = githubService;
             _taskRepository = taskRepository;
             _classRoomRepository = classRoomRepository;
+            _taskReadService = taskReadService;
+            _groupReadService = groupReadService;
         }
 
         public async Task<Result<TaskDetailModel>> Handle(GetTaskDetailQuery request, CancellationToken cancellationToken)
         {
-            var task = await _taskRepository.GetWithCreatorAndAssigneeByIdAsync(request.TaskId);
+            var task = await _taskReadService.GetWithCreatorAndAssigneeByIdAsync(request.TaskId);
             if (task == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy task"));
             
-            var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
+            var group = await _groupReadService.GetByIdWithMemberAsync(task.GroupId);
             if (group == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy nhóm"));
             if (!group.IsActive) return Result.Failure<TaskDetailModel>(new Error("403", "Nhóm đã bị vô hiệu hóa"));
 
@@ -58,15 +63,19 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
             {
                 var (owner, repo) = GithubUrlParser.Parse(group.GithubRepoUrl!);
                 PullRequestModel? pr = null;
-                if (task.Status == TasksStatus.Test || task.Status == TasksStatus.Done)
+                if (task.TaskStatus == TasksStatus.Test || task.TaskStatus == TasksStatus.Done)
                 {
                     pr = await _githubService.GetPRByTaskIdAsync(owner, repo, task.Id);
                 }
-                return new TaskDetailModel(task.Id, task.Title, task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate, task.CompletedAt, task.Duration, pr, task.Assignee?.UserName, task.CreatedBy, task.Creator?.UserName, task.AssignedTo);
+                return new TaskDetailModel(task.Id, task.Title, task.TaskPriority, task.Description, task.TaskStatus,
+                                           task.CreatedAt, task.StartDate,task.DueDate, task.CompletedAt,task.Duration,
+                                           pr,task.Assignee.Name, task.CreatedBy, task.Creator?.Name, task.AssigneTo);
             }
             else
             {
-                return new TaskDetailModel(task.Id, task.Title, task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate, task.CompletedAt, task.Duration, null, task.Assignee?.UserName, task.CreatedBy, task.Creator?.UserName, task.AssignedTo);
+                return new TaskDetailModel(task.Id, task.Title, task.TaskPriority, task.Description, task.TaskStatus, 
+                                           task.CreatedAt, task.StartDate, task.DueDate, task.CompletedAt, task.Duration,
+                                           null, task.Assignee?.Name, task.CreatedBy, task.Creator?.Name, task.AssigneTo);
             }
         }
     };
