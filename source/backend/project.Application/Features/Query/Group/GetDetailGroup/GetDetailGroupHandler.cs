@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using project.Application.Interfaces.CachedModel;
 using project.Application.ModelsDto;
 using project.Domain.Interfaces;
 using project.Domain.Shared;
@@ -14,11 +15,11 @@ namespace project.Application.Features.Query.Group.GetDetailGroup
     public sealed class GetDetailGroupHandler : IRequestHandler<GetDetailGroupQuery, Result<GroupDetailModel>>
     {
         private readonly IClassroomRepository _classRoomRepository;
-        private readonly IGroupRepository _groupRepository;
+        private readonly IGroupReadService _groupReadService;
         private readonly IMapper _mapper;
-        public GetDetailGroupHandler(IGroupRepository groupRepository, IMapper mapper, IClassroomRepository classRoomRepository)
+        public GetDetailGroupHandler(IGroupReadService groupReadService, IMapper mapper, IClassroomRepository classRoomRepository)
         {
-            _groupRepository = groupRepository;
+            _groupReadService = groupReadService;
             _mapper = mapper;
             _classRoomRepository = classRoomRepository;
         }
@@ -26,20 +27,20 @@ namespace project.Application.Features.Query.Group.GetDetailGroup
         public async Task<Result<GroupDetailModel>> Handle(GetDetailGroupQuery request, CancellationToken cancellationToken)
         {
             
-            var group = await _groupRepository.GetByIdWithDetailAsync(request.GroupId);
-            if (group == null) return Result.Failure<GroupDetailModel>(new Error("404", "Không tìm thấy nhóm"));
+            var groupCached = await _groupReadService.GetByIdWithDetailAsync(request.GroupId);
+            if (groupCached == null) return Result.Failure<GroupDetailModel>(new Error("404", "Không tìm thấy nhóm"));
 
-            var classroom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+            var classroom = await _classRoomRepository.GetByIdAsync(groupCached.ClassroomId);
             if (classroom == null) return Result.Failure<GroupDetailModel>(new Error("404", "Không tìm thấy lớp học"));
 
             if (classroom.TeacherId != request.RequestedBy)
             {
-                var member = group.FindMember(request.RequestedBy);
-                if (member == null) return Result.Failure<GroupDetailModel>(new Error("403", "Bạn không phải là thành viên của nhóm"));
-                if (!member.IsActive) return Result.Failure<GroupDetailModel>(new Error("403", "Bạn đã rời nhóm"));
+                var status = await _groupReadService.GetMemberActiveStatusAsync(groupCached.Id, request.RequestedBy, cancellationToken);
+                if (status == null) return Result.Failure<GroupDetailModel>(new Error("403", "Bạn không phải là thành viên của nhóm"));
+                if (status == false) return Result.Failure<GroupDetailModel>(new Error("403", "Bạn đã rời nhóm"));
             }
 
-            var dto = _mapper.Map<GroupDetailModel>(group);
+            var dto = _mapper.Map<GroupDetailModel>(groupCached);
             return Result.Success(dto);
         }
     }
