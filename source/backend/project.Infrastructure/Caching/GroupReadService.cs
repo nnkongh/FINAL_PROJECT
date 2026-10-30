@@ -47,20 +47,23 @@ namespace project.Infrastructure.Caching
         public Task<GroupMembersCacheDto?> GetByIdWithMemberAsync(int id, CancellationToken ct = default)
         {
             return _db.Groups
-                .AsNoTracking()
-                .Where(g => g.Id == id)
-                .Select(g => new GroupMembersCacheDto(
-                    g.Id,
-                    g.Members
-                        .Where(m => m.IsActive)
-                        .Select(m => new GroupMemberCacheDto(
+                    .AsNoTracking()
+                    .Where(g => g.Id == id)
+                    .Select(g => new GroupMembersCacheDto(
+                        g.Id,
+                        g.ClassRoomId,
+                        g.GithubRepoUrl,
+                        g.IsActive,
+                        g.Members
+                            .Where(m => m.IsActive)
+                            .Select(m => new GroupMemberCacheDto(
                                 m.UserId,
                                 m.User.UserName,
                                 m.User.Email,
                                 m.Role,
                                 m.IsActive))
-                        .ToList()))
-                .FirstOrDefaultAsync(ct);
+                            .ToList()))
+                    .FirstOrDefaultAsync(ct);
         }
 
         public Task<bool?> GetMemberActiveStatusAsync(int groupId, int userId, CancellationToken ct = default)

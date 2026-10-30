@@ -17,10 +17,10 @@ namespace project.Infrastructure.Caching
 
     public static class GroupCacheKeys
     {
-        public static string Detail(int id) => $"group:{id}:detail";
-        public static string Entity(int id) => $"group:{id}";
-        public static string WithMember(int id) => $"group:{id}:member";
-        public static string WithTaskMember(int id) => $"group:{id}:task:member";
+        public static string Detail(int id) => $"group:v3:{id}:detail";
+        public static string Entity(int id) => $"group:v3:{id}";
+        public static string WithMember(int id) => $"group:v3:{id}:member";
+        public static string WithTaskMember(int id) => $"group:v3:{id}:task:member";
     }
 
     public class CachedGroupReadService : IGroupReadService
@@ -52,7 +52,7 @@ namespace project.Infrastructure.Caching
 
         public async Task<GroupMembersCacheDto?> GetByIdWithMemberAsync(int id, CancellationToken ct = default)
         {
-            var key = GroupCacheKeys.Detail(id);
+            var key = GroupCacheKeys.WithMember(id);
             var cached = await _cache.GetStringAsync(key, ct);
             if (cached is not null)
                 return JsonSerializer.Deserialize<GroupMembersCacheDto?>(cached);
@@ -64,16 +64,7 @@ namespace project.Infrastructure.Caching
             return dto;
         }
 
-        public async Task<bool?> GetMemberActiveStatusAsync(int groupId, int userId, CancellationToken ct = default)
-        {
-            var key = GroupCacheKeys.Detail(groupId);
-            var cached = await _cache.GetStringAsync(key, ct);
-            if (cached is not null)
-                return true;
-
-            var dto = await _inner.GetMemberActiveStatusAsync(groupId, userId, ct);
-            if (dto is null) return false;
-            return true;
-        }
+        public Task<bool?> GetMemberActiveStatusAsync(int groupId, int userId, CancellationToken ct = default)
+       => _inner.GetMemberActiveStatusAsync(groupId, userId, ct);
     }
 }
