@@ -28,6 +28,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 using Microsoft.Extensions.Caching.Distributed;
+using project.Application.Interfaces.CachedModel;
 
 namespace project.Infrastructure.Depedencies
 {
@@ -56,17 +57,9 @@ namespace project.Infrastructure.Depedencies
                     sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
             services.AddScoped<ICommentRepository, CommentRepository>();
 
-            services.AddScoped<GroupRepository>();
-            services.AddScoped<IGroupRepository>(sp =>
-                new CachedGroupRepository(
-                    sp.GetRequiredService<GroupRepository>(),
-                    sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
+            services.AddScoped<IGroupRepository,GroupRepository>();
 
-            services.AddScoped<UserRepository>();
-            services.AddScoped<IUserRepository>(sp =>
-                new CachedUserRepository(
-                    sp.GetRequiredService<UserRepository>(),
-                    sp.GetRequiredService<IDistributedCache>()));
+            services.AddScoped<IUserRepository,UserRepository>();
 
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -74,6 +67,15 @@ namespace project.Infrastructure.Depedencies
             services.AddScoped<IClassroomRepository,ClassroomRepository>(); 
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
 
+            //Cached Decorate
+            services.AddScoped<IUserReadService, UserReadService>();
+            services.Decorate<IUserReadService, CachedUserReadService>();
+            
+            services.AddScoped<IGroupReadService, GroupReadService>();
+            services.Decorate<IGroupReadService, CachedGroupReadService>();
+
+            // Validate Cache
+            services.AddScoped<ICacheInvalidator,CacheInvalidator>();
 
             // Service
             services.AddScoped<ITokenGenerator, TokenGenerator>();
