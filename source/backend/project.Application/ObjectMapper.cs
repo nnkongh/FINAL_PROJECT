@@ -123,6 +123,10 @@ namespace project.Application
              .ForMember(d => d.IsOverdue, opt => opt.MapFrom(src => src.IsOverdue()))
              .ForMember(d => d.Duration, opt => opt.MapFrom(src => src.Duration));
             #endregion
+
+            #region Cache Model
+            CreateMap<GroupCacheDto,GroupDetailModel>();
+            #endregion
         }
     }
 }
