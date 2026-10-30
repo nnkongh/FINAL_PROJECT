@@ -39,7 +39,6 @@ namespace project.Domain.Models
         private readonly List<ClassEnrollment> _classEnrollments = new();
 
         private UserApp() { }
-
         public static UserApp Create(string userName, string email, string passwordHash, string userCode, UserRole userRole)
         {
             if (string.IsNullOrEmpty(userName)) throw new DomainException("Tên không được trống");
