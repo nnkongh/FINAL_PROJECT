@@ -50,11 +50,7 @@ namespace project.Infrastructure.Depedencies
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<WorkTaskRepository>();
-            services.AddScoped<IWorkTaskRepository>(sp =>
-                new CachedTaskRepository(
-                    sp.GetRequiredService<WorkTaskRepository>(),
-                    sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
+            services.AddScoped<IWorkTaskRepository,WorkTaskRepository>();
             services.AddScoped<ICommentRepository, CommentRepository>();
 
             services.AddScoped<IGroupRepository,GroupRepository>();
@@ -68,6 +64,9 @@ namespace project.Infrastructure.Depedencies
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
 
             //Cached Decorate
+            services.AddScoped<ITaskReadService, TaskReadService>();
+            services.Decorate<ITaskReadService,CachedTaskReadService>();
+
             services.AddScoped<IUserReadService, UserReadService>();
             services.Decorate<IUserReadService, CachedUserReadService>();
             
