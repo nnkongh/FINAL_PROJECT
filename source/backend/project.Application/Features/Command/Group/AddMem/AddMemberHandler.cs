@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using project.Application.Interfaces;
+using project.Application.Interfaces.CachedModel;
 using project.Domain.Exceptions;
 using project.Domain.Interfaces;
 using project.Domain.Models;
@@ -19,12 +20,14 @@ namespace project.Application.Features.Command.Group.AddMem
         private readonly IClassroomRepository _classRoomRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
-        public AddMemberHandler(IGroupRepository groupRepository, IUnitOfWork unitOfWork, INotificationService notificationService, IClassroomRepository classRoomRepository)
+        private readonly ICacheInvalidator _cacheInvalidator;
+        public AddMemberHandler(IGroupRepository groupRepository, IUnitOfWork unitOfWork, INotificationService notificationService, IClassroomRepository classRoomRepository, ICacheInvalidator cacheInvalidator)
         {
             _groupRepository = groupRepository;
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
             _classRoomRepository = classRoomRepository;
+            _cacheInvalidator = cacheInvalidator;
         }
 
         public async Task<Result> Handle(AddMemberCommand request, CancellationToken cancellationToken)
@@ -42,6 +45,7 @@ namespace project.Application.Features.Command.Group.AddMem
 
                 await _unitOfWork.Repository<Groups>().Update(group);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _cacheInvalidator.InvalidateGroupAsync(group.Id, cancellationToken);
 
                 var notification = Notification.Create(request.UserId, $"Bạn được thêm vào nhóm {group.Name}", null, request.GroupId, "Group", request.GroupId);
                 await _notificationService.SendNotificationAsync(notification,cancellationToken);
