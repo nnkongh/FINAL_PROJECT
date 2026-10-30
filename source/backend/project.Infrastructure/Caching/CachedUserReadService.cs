@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using project.Application.Interfaces.CachedModel;
-using project.Infrastructure.Database;
 using System.Text.Json;
 
 namespace project.Infrastructure.Caching
@@ -37,22 +35,6 @@ namespace project.Infrastructure.Caching
 
                 await _cache.SetStringAsync(key, JsonSerializer.Serialize(dto), Options, ct);
             return dto;
-        }
-    }
-    public class UserReadService : IUserReadService 
-    {
-        private readonly ApplicationDbContext _context;
-        public UserReadService(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<UserCachedDto?> GetByIdAsync(int id, CancellationToken ct = default)
-        {
-            return await _context.User.AsNoTracking().Where(u => u.Id == id)
-                                .Select(u => new UserCachedDto(
-                                    u.Id, u.UserName, u.UserCode, u.Email, u.UserRole, u.AvatarUrl, u.IsActive))
-                                .FirstOrDefaultAsync(ct);
         }
     }
 }
