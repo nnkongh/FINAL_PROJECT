@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using project.Application.Interfaces;
+using project.Application.Interfaces.CachedModel;
 using project.Domain.Interfaces;
 using project.Domain.Models;
 using project.Domain.Shared;
@@ -16,12 +17,14 @@ namespace project.Application.Features.Command.User.AvatarProfile
         private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPhotoService _photoService;
+        private readonly ICacheInvalidator _cacheInvalidator;
 
-        public ChangeAvatarHandler(IPhotoService photoService, IUnitOfWork unitOfWork, IUserRepository userRepository)
+        public ChangeAvatarHandler(IPhotoService photoService, IUnitOfWork unitOfWork, IUserRepository userRepository, ICacheInvalidator cacheInvalidator)
         {
             _photoService = photoService;
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
+            _cacheInvalidator = cacheInvalidator;
         }
 
         public async Task<Result<string>> Handle(ChangeAvatarCommand request, CancellationToken cancellationToken)
@@ -41,6 +44,7 @@ namespace project.Application.Features.Command.User.AvatarProfile
 
             user.UpdateAvatarProfile(url);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _cacheInvalidator.InvalidateUserAsync(user.Id, cancellationToken);
 
             return Result.Success(url);
 
