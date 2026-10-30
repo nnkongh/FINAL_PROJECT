@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using project.Application.Interfaces.CachedModel;
 using project.Infrastructure.Database;
+using System.Threading.Tasks;
 
 namespace project.Infrastructure.Caching
 {
