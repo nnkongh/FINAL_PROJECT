@@ -1,0 +1,16 @@
+source/.env
+.vs/
+build.log
+source/.env
+.vs/
+build.log
+source/.env
+.vs/
+build.log
+bin/
+obj/
+.vs/
+build.log
+source/.env
+*.exe
+source/.env
